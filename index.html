@@ -1,12 +1,566 @@
-<!doctype html><html lang="th"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Vancomycin TDM Calculator</title><link rel="stylesheet" href="css/style.css"></head><body>
-<header><div class="wrap"><h1>Vancomycin TDM Calculator</h1><p class="subtitle">AUC-guided dosing engine with MAP Bayesian update, population PK model selection, and clinical safety guardrails.</p><div class="tabs"><a class="tab active" href="index.html">Enhanced / Bayesian</a><a class="tab" href="standard.html">Standard</a><a class="tab" href="docs/validation-report.md">Validation report</a></div></div></header>
-<main class="wrap">
-<div class="grid">
-<section class="card col-4"><h2>Patient</h2><div class="row"><div><label>Age</label><input id="age" type="number" value="55"></div><div><label>Sex</label><select id="sex"><option value="M">Male</option><option value="F">Female</option></select></div></div><div class="row"><div><label>Height (cm)</label><input id="heightCm" type="number" value="170"></div><div><label>Weight (kg)</label><input id="weightKg" type="number" value="75"></div></div><div class="row"><div><label>SCr (mg/dL)</label><input id="scrMgDl" type="number" step="0.01" value="1.0"></div><div><label>MIC (mg/L)</label><input id="mic" type="number" step="0.1" value="1"></div></div><label><input id="criticalIll" type="checkbox" style="width:auto"> ICU / critically ill</label><label><input id="unstableRenal" type="checkbox" style="width:auto"> Unstable renal function / AKI</label><label><input id="ecmo" type="checkbox" style="width:auto"> ECMO</label><label>Dialysis mode</label><select id="dialysisMode"><option value="">None</option><option>IHD</option><option>CRRT</option><option>SLED</option></select></section>
-<section class="card col-4"><h2>Dose history</h2><div class="row"><div><label>Dose (mg)</label><input id="doseMg" type="number" value="1000"></div><div><label>Interval (h)</label><input id="tauHr" type="number" value="12"></div></div><div class="row"><div><label>Infusion duration (h)</label><input id="infusionHr" type="number" step="0.1" value="1.7"></div><div><label>Number of doses</label><input id="doseCount" type="number" value="4"></div></div><label>First dose start</label><input id="firstDoseStart" type="datetime-local" value="2026-05-01T08:00"><h2 style="margin-top:18px">Levels</h2><div class="row"><div><label>Level 1 time</label><input id="level1Time" type="datetime-local"></div><div><label>Level 1 (mg/L)</label><input id="level1" type="number" step="0.1"></div></div><div class="row"><div><label>Level 2 time</label><input id="level2Time" type="datetime-local"></div><div><label>Level 2 (mg/L)</label><input id="level2" type="number" step="0.1"></div></div></section>
-<section class="card col-4"><h2>Settings</h2><label>Target AUC24</label><input id="targetAuc" type="number" value="500"><label>PK structure</label><select id="pkStructure"><option value="1cpt">1-compartment MAP</option><option value="2cpt">2-compartment MAP (requires validated institutional prior)</option></select><label>Force model</label><select id="forcedModel"><option value="">Auto-select</option><option value="buelga">Buelga 2005</option><option value="adane">Adane 2015</option><option value="roberts">Roberts 2011</option><option value="masich">Masich 2020</option></select><label><input id="seriousInfection" type="checkbox" checked style="width:auto"> Serious infection / loading dose candidate</label><label><input id="nephrotoxin" type="checkbox" style="width:auto"> Concomitant nephrotoxin risk</label><button id="calculateBtn">Calculate recommendation</button></section>
-<section class="card col-8"><h2>Recommendation</h2><div class="triple"><div><span class="muted">Model</span><div id="resultModel" class="result-big">—</div></div><div><span class="muted">Posterior CL</span><div id="resultCL" class="result-big">—</div></div><div><span class="muted">Predicted AUC24</span><div id="resultAUC" class="result-big">—</div></div></div><div class="triple"><div><span class="muted">Maintenance</span><div id="resultDose" class="result-big">—</div></div><div><span class="muted">Infusion time</span><div id="resultInfusion" class="result-big">—</div></div><div><span class="muted">Loading dose</span><div id="resultLoading" class="result-big">—</div></div></div><h2 style="margin-top:20px">Warnings</h2><div id="resultWarnings" class="warning-list"><span class="pill">—</span></div></section>
-<section class="card col-4"><h2>Alternatives</h2><table><thead><tr><th>Regimen</th><th>AUC</th><th>Trough</th></tr></thead><tbody id="alternativesBody"><tr><td colspan="3">—</td></tr></tbody></table></section>
-<section class="card col-12"><h2>Clinical scope</h2><p class="muted">Adult inpatient default model only. Hard stops: pediatric patients, MIC ≥2 mg/L, renal replacement therapy, ECMO, unstable renal function/AKI, or samples drawn during infusion. This app is for pharmacist-supervised TDM and institutional validation only.</p></section>
-</div><p class="footer-note">This software is provided as a calculation framework. It is not certified as a medical device and does not replace clinical judgement, local antimicrobial stewardship policy, or validated commercial/institutional Bayesian dosing software.</p>
-</main><script src="js/vancomycin-engine.js"></script><script src="js/vancomycin-adapter.js"></script></body></html>
+
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Vancomycin TDM Calculator Hub - เลือกเครื่องมือที่เหมาะสม</title>
+<link rel="icon" type="image/x-icon" href="favicon.ico">
+<link rel="icon" type="image/png" sizes="32x32" href="favicon-32x32.png">
+<link rel="icon" type="image/png" sizes="16x16" href="favicon-16x16.png">
+<link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.4.0/css/all.min.css">
+<style>
+body {
+background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+min-height: 100vh;
+}
+
+.card-enhanced {
+background: linear-gradient(135deg, #003087 0%, #001d4c 100%);
+border: 2px solid #d32f2f;
+box-shadow: 0 10px 30px rgba(211, 47, 47, 0.3);
+transition: all 0.3s ease;
+}
+
+.card-enhanced:hover {
+transform: translateY(-5px);
+box-shadow: 0 15px 40px rgba(211, 47, 47, 0.4);
+}
+
+.card-standard {
+background: #045b77;
+border: 2px solid #0091ea;
+box-shadow: 0 10px 30px rgba(0, 145, 234, 0.3);
+transition: all 0.3s ease;
+}
+
+.card-standard:hover {
+transform: translateY(-5px);
+box-shadow: 0 15px 40px rgba(0, 145, 234, 0.4);
+}
+
+.feature-badge {
+background: rgba(255, 255, 255, 0.2);
+backdrop-filter: blur(10px);
+border: 1px solid rgba(255, 255, 255, 0.3);
+}
+
+.decision-tree {
+background: rgba(255, 255, 255, 0.95);
+backdrop-filter: blur(10px);
+border: 1px solid rgba(255, 255, 255, 0.3);
+}
+
+.pulse-glow {
+animation: pulse-glow 2s infinite;
+}
+
+@keyframes pulse-glow {
+0%, 100% { box-shadow: 0 0 20px rgba(211, 47, 47, 0.5); }
+50% { box-shadow: 0 0 30px rgba(211, 47, 47, 0.8); }
+}
+
+.comparison-table {
+background: rgba(255, 255, 255, 0.95);
+backdrop-filter: blur(10px);
+}
+
+.pros-cons {
+background: rgba(255, 255, 255, 0.1);
+border-left: 4px solid #10b981;
+}
+
+.cons {
+border-left-color: #ef4444;
+}
+</style>
+</head>
+<body class="text-gray-800">
+
+<!-- Header -->
+<div class="bg-white bg-opacity-10 backdrop-filter backdrop-blur-lg border-b border-white border-opacity-20">
+<div class="container mx-auto px-4 py-6">
+<div class="text-center">
+<h1 class="text-4xl font-bold text-white mb-2">
+<i class="fas fa-pills text-yellow-300 mr-3"></i>
+Vancomycin TDM Calculator Hub
+</h1>
+<p class="text-xl text-white opacity-90">เลือกเครื่องมือคำนวณที่เหมาะสมกับผู้ป่วยของคุณ</p>
+<div class="mt-3 flex justify-center items-center space-x-4 text-sm text-white opacity-80">
+<span><i class="fas fa-brain mr-1"></i>AI-Powered Bayesian Methods</span>
+<span><i class="fas fa-chart-line mr-1"></i>Population Pharmacokinetics</span>
+<span><i class="fas fa-user-md mr-1"></i>Clinical Decision Support</span>
+</div>
+</div>
+</div>
+</div>
+
+<div class="container mx-auto px-4 py-8 max-w-7xl">
+
+<!-- Quick Decision Guide -->
+<div class="decision-tree rounded-xl p-6 mb-8 shadow-2xl">
+<h2 class="text-2xl font-bold text-gray-800 mb-4 text-center">
+<i class="fas fa-route text-blue-600 mr-2"></i>
+คำแนะนำการเลือกใช้งานแบบเร็ว
+</h2>
+<div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+<div class="space-y-3">
+<h3 class="font-semibold text-lg text-red-700">
+<i class="fas fa-brain mr-2"></i>Enhanced Version (แนะนำ)
+</h3>
+<div class="space-y-2 text-sm">
+<div class="flex items-center">
+<i class="fas fa-check-circle text-green-500 mr-2"></i>
+<span>ผู้ป่วยอ้วนมาก (BMI > 40)</span>
+</div>
+<div class="flex items-center">
+<i class="fas fa-check-circle text-green-500 mr-2"></i>
+<span>ผู้ป่วยอาการหนัก (ICU)</span>
+</div>
+<div class="flex items-center">
+<i class="fas fa-check-circle text-green-500 mr-2"></i>
+<span>ผู้สูงอายุที่ไตเสื่อม (> 75 ปี, CrCl < 30)</span>
+</div>
+<div class="flex items-center">
+<i class="fas fa-check-circle text-green-500 mr-2"></i>
+<span>ผู้ป่วยที่มีระดับยาผิดปกติ</span>
+</div>
+<div class="flex items-center">
+<i class="fas fa-check-circle text-green-500 mr-2"></i>
+<span>ต้องการความแม่นยำสูงสุด</span>
+</div>
+</div>
+</div>
+<div class="space-y-3">
+<h3 class="font-semibold text-lg text-blue-700">
+<i class="fas fa-calculator mr-2"></i>Standard Version
+</h3>
+<div class="space-y-2 text-sm">
+<div class="flex items-center">
+<i class="fas fa-check-circle text-green-500 mr-2"></i>
+<span>ผู้ป่วยทั่วไป (BMI < 30)</span>
+</div>
+<div class="flex items-center">
+<i class="fas fa-check-circle text-green-500 mr-2"></i>
+<span>ไตทำงานปกติ (CrCl > 50)</span>
+</div>
+<div class="flex items-center">
+<i class="fas fa-check-circle text-green-500 mr-2"></i>
+<span>การใช้งานเบื้องต้น</span>
+</div>
+<div class="flex items-center">
+<i class="fas fa-check-circle text-green-500 mr-2"></i>
+<span>ไม่มีซอฟต์แวร์ Bayesian</span>
+</div>
+<div class="flex items-center">
+<i class="fas fa-check-circle text-green-500 mr-2"></i>
+<span>ต้องการความรวดเร็ว</span>
+</div>
+</div>
+</div>
+</div>
+</div>
+
+<!-- Calculator Cards -->
+<div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
+
+<!-- Enhanced Calculator -->
+<div class="card-enhanced rounded-xl p-6 text-white relative pulse-glow">
+<div class="absolute top-4 right-4">
+<span class="feature-badge px-3 py-1 rounded-full text-xs font-semibold">
+<i class="fas fa-star mr-1"></i>RECOMMENDED
+</span>
+</div>
+<div class="mb-6">
+<div class="flex items-center mb-3">
+<i class="fas fa-brain text-4xl text-red-400 mr-4"></i>
+<div>
+<h2 class="text-2xl font-bold">Enhanced Vancomycin TDM</h2>
+<p class="text-sm opacity-90">with Advanced Bayesian Methods</p>
+</div>
+</div>
+<p class="text-sm opacity-80 leading-relaxed">
+เครื่องมือคำนวณขั้นสูงที่ใช้ Bayesian optimization เพื่อปรับแต่งพารามิเตอร์เฉพาะบุคคล
+เพิ่มความแม่นยำ 10-30% ในผู้ป่วยซับซ้อน
+</p>
+</div>
+<div class="space-y-4 mb-6">
+<div class="pros-cons rounded-lg p-4">
+<h4 class="font-semibold mb-2 text-green-300">
+<i class="fas fa-plus-circle mr-2"></i>ข้อดี
+</h4>
+<ul class="text-sm space-y-1 opacity-90">
+<li>• รองรับทั้ง Population PK และ Bayesian methods</li>
+<li>• เลือกโมเดลตามลักษณะผู้ป่วย (BMI, ภาวะวิกฤต)</li>
+<li>• Bayesian optimization เพิ่มความแม่นยำ</li>
+<li>• ระบบประเมินความซับซ้อน</li>
+<li>• สอดคล้องกับแนวทางสากล</li>
+</ul>
+</div>
+<div class="grid grid-cols-2 gap-3 text-xs">
+<div class="feature-badge rounded-lg p-3 text-center">
+<i class="fas fa-brain text-lg mb-1 block"></i>
+<span>4 Population Models</span>
+</div>
+<div class="feature-badge rounded-lg p-3 text-center">
+<i class="fas fa-chart-line text-lg mb-1 block"></i>
+<span>Bayesian Optimization</span>
+</div>
+<div class="feature-badge rounded-lg p-3 text-center">
+<i class="fas fa-user-md text-lg mb-1 block"></i>
+<span>Complexity Assessment</span>
+</div>
+<div class="feature-badge rounded-lg p-3 text-center">
+<i class="fas fa-balance-scale text-lg mb-1 block"></i>
+<span>Population vs Bayesian</span>
+</div>
+</div>
+</div>
+<button onclick="window.open('enhanced-vancomycin-tdm.html', '_blank')"
+class="w-full bg-red-600 hover:bg-red-700 text-white font-semibold py-3 px-6 rounded-lg transition duration-200 flex items-center justify-center">
+<i class="fas fa-rocket mr-2"></i>
+เปิดใช้งาน Enhanced Version
+</button>
+</div>
+
+<!-- Standard Calculator -->
+<div class="card-standard rounded-xl p-6 text-white">
+<div class="absolute top-4 right-4">
+<span class="feature-badge px-3 py-1 rounded-full text-xs font-semibold">
+<i class="fas fa-tachometer-alt mr-1"></i>FAST & SIMPLE
+</span>
+</div>
+<div class="mb-6">
+<div class="flex items-center mb-3">
+<i class="fas fa-calculator text-4xl text-blue-300 mr-4"></i>
+<div>
+<h2 class="text-2xl font-bold">Standard Vancomycin TDM</h2>
+<p class="text-sm opacity-90">Population Pharmacokinetics</p>
+</div>
+</div>
+<p class="text-sm opacity-80 leading-relaxed">
+เครื่องมือคำนวณมาตรฐานที่ใช้สูตร First-order PK equations
+เหมาะสำหรับผู้ป่วยทั่วไปและการใช้งานเบื้องต้น
+</p>
+</div>
+<div class="space-y-4 mb-6">
+<div class="pros-cons rounded-lg p-4">
+<h4 class="font-semibold mb-2 text-green-300">
+<i class="fas fa-plus-circle mr-2"></i>ข้อดี
+</h4>
+<ul class="text-sm space-y-1 opacity-90">
+<li>• ใช้สูตรมาตรฐานที่ guideline ยอมรับ</li>
+<li>• รองรับ obese/non-obese dosing</li>
+<li>• ปรับตาม CrCl อัตโนมัติ</li>
+<li>• เหมาะกับผู้ป่วยทั่วไป</li>
+<li>• ใช้งานง่าย รวดเร็ว</li>
+</ul>
+</div>
+<div class="pros-cons cons rounded-lg p-4">
+<h4 class="font-semibold mb-2 text-red-300">
+<i class="fas fa-minus-circle mr-2"></i>ข้อจำกัด
+</h4>
+<ul class="text-sm space-y-1 opacity-90">
+<li>• ไม่มี Bayesian optimization</li>
+<li>• ความแม่นยำต่ำกว่าในผู้ป่วยซับซ้อน</li>
+<li>• ไม่มีระบบประเมินความซับซ้อน</li>
+</ul>
+</div>
+<div class="grid grid-cols-2 gap-3 text-xs">
+<div class="feature-badge rounded-lg p-3 text-center">
+<i class="fas fa-tachometer-alt text-lg mb-1 block"></i>
+<span>Fast Calculation</span>
+</div>
+<div class="feature-badge rounded-lg p-3 text-center">
+<i class="fas fa-weight text-lg mb-1 block"></i>
+<span>Obese Dosing</span>
+</div>
+<div class="feature-badge rounded-lg p-3 text-center">
+<i class="fas fa-kidneys text-lg mb-1 block"></i>
+<span>CrCl Adjustment</span>
+</div>
+<div class="feature-badge rounded-lg p-3 text-center">
+<i class="fas fa-chart-area text-lg mb-1 block"></i>
+<span>AUC Calculation</span>
+</div>
+</div>
+</div>
+<button onclick="window.open('vancomycin-standard.html', '_blank')"
+class="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-6 rounded-lg transition duration-200 flex items-center justify-center">
+<i class="fas fa-play mr-2"></i>
+เปิดใช้งาน Standard Version
+</button>
+</div>
+
+</div>
+
+<!-- Comparison Table -->
+<div class="comparison-table rounded-xl p-6 shadow-2xl mb-8">
+<h2 class="text-2xl font-bold text-gray-800 mb-6 text-center">
+<i class="fas fa-table text-blue-600 mr-2"></i>
+เปรียบเทียบคุณสมบัติ
+</h2>
+<div class="overflow-x-auto">
+<table class="w-full text-sm">
+<thead>
+<tr class="border-b-2 border-gray-200">
+<th class="text-left py-3 px-4 font-semibold text-gray-700">คุณสมบัติ</th>
+<th class="text-center py-3 px-4 font-semibold text-red-700">Enhanced Version</th>
+<th class="text-center py-3 px-4 font-semibold text-blue-700">Standard Version</th>
+</tr>
+</thead>
+<tbody class="divide-y divide-gray-200">
+<tr>
+<td class="py-3 px-4 font-medium">Population Models</td>
+<td class="py-3 px-4 text-center">
+<span class="bg-green-100 text-green-800 px-2 py-1 rounded-full text-xs">4 Models</span>
+</td>
+<td class="py-3 px-4 text-center">
+<span class="bg-blue-100 text-blue-800 px-2 py-1 rounded-full text-xs">1 Model</span>
+</td>
+</tr>
+<tr>
+<td class="py-3 px-4 font-medium">Bayesian Optimization</td>
+<td class="py-3 px-4 text-center">
+<i class="fas fa-check text-green-600 text-lg"></i>
+</td>
+<td class="py-3 px-4 text-center">
+<i class="fas fa-times text-red-600 text-lg"></i>
+</td>
+</tr>
+<tr>
+<td class="py-3 px-4 font-medium">Complexity Assessment</td>
+<td class="py-3 px-4 text-center">
+<i class="fas fa-check text-green-600 text-lg"></i>
+</td>
+<td class="py-3 px-4 text-center">
+<i class="fas fa-times text-red-600 text-lg"></i>
+</td>
+</tr>
+<tr>
+<td class="py-3 px-4 font-medium">Accuracy Improvement</td>
+<td class="py-3 px-4 text-center">
+<span class="bg-green-100 text-green-800 px-2 py-1 rounded-full text-xs">10-30%</span>
+</td>
+<td class="py-3 px-4 text-center">
+<span class="bg-gray-100 text-gray-800 px-2 py-1 rounded-full text-xs">Baseline</span>
+</td>
+</tr>
+<tr>
+<td class="py-3 px-4 font-medium">Critically Ill Patients</td>
+<td class="py-3 px-4 text-center">
+<span class="bg-green-100 text-green-800 px-2 py-1 rounded-full text-xs">Optimized</span>
+</td>
+<td class="py-3 px-4 text-center">
+<span class="bg-yellow-100 text-yellow-800 px-2 py-1 rounded-full text-xs">Basic</span>
+</td>
+</tr>
+<tr>
+<td class="py-3 px-4 font-medium">Obese Patients (BMI > 40)</td>
+<td class="py-3 px-4 text-center">
+<span class="bg-green-100 text-green-800 px-2 py-1 rounded-full text-xs">Specialized</span>
+</td>
+<td class="py-3 px-4 text-center">
+<span class="bg-yellow-100 text-yellow-800 px-2 py-1 rounded-full text-xs">Standard</span>
+</td>
+</tr>
+<tr>
+<td class="py-3 px-4 font-medium">Calculation Speed</td>
+<td class="py-3 px-4 text-center">
+<span class="bg-yellow-100 text-yellow-800 px-2 py-1 rounded-full text-xs">Moderate</span>
+</td>
+<td class="py-3 px-4 text-center">
+<span class="bg-green-100 text-green-800 px-2 py-1 rounded-full text-xs">Fast</span>
+</td>
+</tr>
+<tr>
+<td class="py-3 px-4 font-medium">Ease of Use</td>
+<td class="py-3 px-4 text-center">
+<span class="bg-yellow-100 text-yellow-800 px-2 py-1 rounded-full text-xs">Advanced</span>
+</td>
+<td class="py-3 px-4 text-center">
+<span class="bg-green-100 text-green-800 px-2 py-1 rounded-full text-xs">Simple</span>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+
+<!-- Guidelines Reference -->
+<div class="bg-white bg-opacity-95 backdrop-filter backdrop-blur-lg rounded-xl p-6 shadow-2xl">
+<h2 class="text-2xl font-bold text-gray-800 mb-4 text-center">
+<i class="fas fa-book-medical text-blue-600 mr-2"></i>
+แนวทางการใช้งานและข้อมูลอ้างอิง
+</h2>
+<div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+<div class="space-y-3">
+<h3 class="font-semibold text-lg text-gray-800 border-b border-gray-300 pb-2">
+<i class="fas fa-target text-red-600 mr-2"></i>เป้าหมาย AUC
+</h3>
+<div class="space-y-2 text-sm text-gray-700">
+<div class="flex justify-between">
+<span>การติดเชื้อทั่วไป:</span>
+<span class="font-semibold">400-600</span>
+</div>
+<div class="flex justify-between">
+<span>การติดเชื้อรุนแรง:</span>
+<span class="font-semibold">500-600</span>
+</div>
+<div class="flex justify-between">
+<span>เยื่อหุ้มสมอง:</span>
+<span class="font-semibold">>600</span>
+</div>
+<div class="flex justify-between">
+<span>MIC ≥2:</span>
+<span class="font-semibold text-red-600">เปลี่ยนยา</span>
+</div>
+</div>
+</div>
+<div class="space-y-3">
+<h3 class="font-semibold text-lg text-gray-800 border-b border-gray-300 pb-2">
+<i class="fas fa-users text-blue-600 mr-2"></i>Population Models
+</h3>
+<div class="space-y-2 text-sm text-gray-700">
+<div class="flex items-center">
+<span class="w-3 h-3 bg-blue-600 rounded-full mr-2"></span>
+<span>Buelga 2005: ผู้ป่วยทั่วไป</span>
+</div>
+<div class="flex items-center">
+<span class="w-3 h-3 bg-red-600 rounded-full mr-2"></span>
+<span>Adane 2015: อ้วนมาก (BMI >40)</span>
+</div>
+<div class="flex items-center">
+<span class="w-3 h-3 bg-gray-600 rounded-full mr-2"></span>
+<span>Roberts 2011: อาการหนัก</span>
+</div>
+<div class="flex items-center">
+<span class="w-3 h-3 bg-purple-600 rounded-full mr-2"></span>
+<span>Masich 2020: อาการหนัก+อ้วน</span>
+</div>
+</div>
+</div>
+<div class="space-y-3">
+<h3 class="font-semibold text-lg text-gray-800 border-b border-gray-300 pb-2">
+<i class="fas fa-brain text-purple-600 mr-2"></i>Bayesian Benefits
+</h3>
+<div class="space-y-2 text-sm text-gray-700">
+<div class="flex items-center">
+<i class="fas fa-plus text-green-600 mr-2"></i>
+<span>ผู้ป่วยซับซ้อน: +10-30%</span>
+</div>
+<div class="flex items-center">
+<i class="fas fa-plus text-green-600 mr-2"></i>
+<span>ปรับแต่งเฉพาะบุคคล</span>
+</div>
+<div class="flex items-center">
+<i class="fas fa-plus text-green-600 mr-2"></i>
+<span>ลดความผิดพลาด</span>
+</div>
+<div class="flex items-center">
+<i class="fas fa-plus text-green-600 mr-2"></i>
+<span>ปรับปรุงความปลอดภัย</span>
+</div>
+</div>
+</div>
+</div>
+<div class="mt-6 p-4 bg-blue-50 rounded-lg">
+<h4 class="font-semibold text-blue-800 mb-2">
+<i class="fas fa-info-circle mr-2"></i>คำแนะนำสำหรับผู้ใช้งาน
+</h4>
+<p class="text-sm text-blue-700">
+<strong>Enhanced Version</strong> แนะนำสำหรับผู้ป่วยซับซ้อน ผู้ป่วยอ้วนมาก หรือผู้ป่วยอาการหนัก
+เพื่อให้ได้ความแม่นยำสูงสุด โดยใช้ Bayesian methods ปรับแต่งพารามิเตอร์เฉพาะบุคคล<br>
+<strong>Standard Version</strong> เหมาะสำหรับผู้ป่วยทั่วไป การใช้งานเบื้องต้น หรือเมื่อต้องการผลลัพธ์อย่างรวดเร็ว
+</p>
+</div>
+</div>
+
+</div>
+
+<!-- Footer -->
+<footer class="bg-white bg-opacity-10 backdrop-filter backdrop-blur-lg border-t border-white border-opacity-20 mt-12">
+<div class="container mx-auto px-4 py-6">
+<div class="text-center text-white">
+<p class="text-sm opacity-80">
+© 2024 Vancomycin TDM Calculator Hub - เครื่องมือช่วยเหลือทางการแพทย์
+</p>
+<p class="text-xs opacity-60 mt-2">
+<i class="fas fa-exclamation-triangle mr-1"></i>
+เครื่องมือนี้ใช้เพื่อช่วยในการตัดสินใจทางคลินิกเท่านั้น ไม่ใช่การทดแทนดุลยพินิจทางการแพทย์
+</p>
+</div>
+</div>
+</footer>
+
+<script>
+// Add smooth scrolling and interaction effects
+document.addEventListener('DOMContentLoaded', function() {
+    // Add hover effects to cards
+    const cards = document.querySelectorAll('.card-enhanced, .card-standard');
+    cards.forEach(card => {
+        card.addEventListener('mouseenter', function() {
+            this.style.transform = 'translateY(-5px) scale(1.02)';
+        });
+        card.addEventListener('mouseleave', function() {
+            this.style.transform = 'translateY(0) scale(1)';
+        });
+    });
+
+    // Add click tracking
+    const buttons = document.querySelectorAll('button');
+    buttons.forEach(button => {
+        button.addEventListener('click', function() {
+            const buttonText = this.textContent;
+            console.log('Button clicked:', buttonText);
+            // Add visual feedback
+            this.style.transform = 'scale(0.95)';
+            setTimeout(() => {
+                this.style.transform = 'scale(1)';
+            }, 150);
+        });
+    });
+
+    // Add smooth reveal animations
+    const observer = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+            if (entry.isIntersecting) {
+                entry.target.style.opacity = '1';
+                entry.target.style.transform = 'translateY(0)';
+            }
+        });
+    });
+
+    // Observe all major sections
+    const sections = document.querySelectorAll('.decision-tree, .card-enhanced, .card-standard, .comparison-table');
+    sections.forEach(section => {
+        section.style.opacity = '0';
+        section.style.transform = 'translateY(20px)';
+        section.style.transition = 'all 0.6s ease-out';
+        observer.observe(section);
+    });
+});
+
+// Function to handle tool selection
+function selectTool(tool) {
+    if (tool === 'enhanced') {
+        window.open('enhanced-vancomycin-tdm.html', '_blank');
+    } else if (tool === 'standard') {
+        window.open('vancomycin-standard.html', '_blank');
+    }
+}
+
+// Add keyboard navigation
+document.addEventListener('keydown', function(e) {
+    if (e.key === '1') {
+        selectTool('enhanced');
+    } else if (e.key === '2') {
+        selectTool('standard');
+    }
+});
+</script>
+
+</body>
+</html>

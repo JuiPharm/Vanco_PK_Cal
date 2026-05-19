@@ -1,31 +1,31 @@
-id,disposition,model,confidence,cl,dose,auc,trough,warnings,pass
-C01,supported,buelga,prior-only,5.897,"1500 q12h",508.8,14,"—",true
-C02,supported,buelga,one-level-map,2.886,"1500 q24h",519.7,12.3,"—",true
-C03,supported,buelga,two-level-map,4.917,"1250 q12h",508.5,13.6,"—",true
-C04,supported,adane,prior-only,7.519,"1250 q8h",498.7,15.1,"—",true
-C05,supported,adane,one-level-map,4.324,"750 q8h",520.3,17.3,"—",true
-C06,supported,roberts,prior-only,3.285,"2500 q36h",507.4,13.4,"—",true
-C07,supported,roberts,one-level-map,1.854,"1500 q36h",539.3,16,"—",true
-C08,supported,roberts,two-level-map,4.705,"1750 q18h",496,13.7,"—",true
-C09,supported,masich,prior-only,6.03,"1500 q12h",497.5,14.8,"—",true
-C10,supported,masich,one-level-map,5.078,"1250 q12h",492.3,14.7,"—",true
-C11,supported,masich,two-level-map,5.055,"2500 q24h",494.6,11.1,"—",true
-C12,supported,buelga,prior-only,1.102,"750 q36h",453.9,12.9,"—",true
-C13,supported,buelga,one-level-map,1.528,"750 q24h",490.9,15.2,"—",true
-C14,supported,buelga,prior-only,12.312,"2000 q8h",487.3,14.1,"HIGH_DAILY_DOSE",true
-C15,supported,roberts,one-level-map,9.12,"3000 q18h",438.6,9.3,"—",true
-C16,hard-stop,—,—,—,"—",—,—,"UNSTABLE_RENAL_FUNCTION",true
-C17,hard-stop,—,—,—,"—",—,—,"RENAL_REPLACEMENT_THERAPY",true
-C18,hard-stop,—,—,—,"—",—,—,"RENAL_REPLACEMENT_THERAPY",true
-C19,hard-stop,—,—,—,"—",—,—,"ECMO_UNSUPPORTED_BY_DEFAULT_MODELS",true
-C20,hard-stop,—,—,—,"—",—,—,"ADULT_ONLY",true
-C21,supported,buelga,prior-only,4.082,"1000 q12h",489.9,11.9,"—",true
-C22,supported,adane,prior-only,8.867,"1000 q6h",451.1,15.8,"—",true
-C23,supported,buelga,prior-only,3.046,"750 q12h",492.5,14.3,"—",true
-C24,hard-stop,—,—,—,"—",—,—,"MIC_TOO_HIGH",true
-C25,hard-stop,—,—,—,"—",—,—,"SAMPLE_DURING_INFUSION",true
-C26,supported,buelga,two-level-map,3.747,"2750 q36h",489.3,9,"—",true
-C27,supported,buelga,one-level-map,2.957,"1500 q24h",507.2,13.8,"—",true
-C28,supported,buelga,one-level-map,1.841,"1000 q24h",543.1,15.3,"—",true
-C29,supported,buelga,two-level-map,10.381,"3000 q18h",385.3,8,"AUC_BELOW_TARGET",true
-C30,supported,roberts,one-level-map,3.041,"2250 q36h",493.3,14.7,"NEPHROTOXIN_RISK",true
+id,pass,model,crcl,cl,vd,currentAUC,adjustedDose,expectedAUC,predTrough,alerts
+"GEN-01","true","Buelga 2005","102.6","5.23","76.9","383","1250","478","13.8",""
+"GEN-02","true","Buelga 2005","49.3","3.30","45.1","455","750","455","12.4",""
+"GEN-03","true","Buelga 2005","80.7","4.90","83.9","510","1250","510","15.6",""
+"ELD-01","true","Buelga 2005","34.5","2.00","63.6","500","1000","500","14.3",""
+"ELD-02","true","Buelga 2005","20.8","1.45","79.4","517","750","517","17.4",""
+"REN-01","true","Buelga 2005","33.1","1.73","76.7","579","750","434","13.8","ไตทำงานไม่คงที่: ควรใช้ TDM ถี่ขึ้นและตรวจ SCr ซ้ำ"
+"REN-02","true","Buelga 2005","17.8","1.15","63.2","653","500","436","14.6","ไตทำงานไม่คงที่: ควรใช้ TDM ถี่ขึ้นและตรวจ SCr ซ้ำ"
+"ARC-01","true","Buelga 2005","220.4","12.37","63.1","364","2000","485","11.8",""
+"ARC-02","true","Buelga 2005","193.5","13.17","87.6","285","2250","513","14.8",""
+"OB-01","true","Adane 2015","112.0","5.97","64.2","502","1500","502","12.8",""
+"OB-02","true","Adane 2015","78.5","5.27","70.7","665","1250","475","13.2",""
+"OB-03","true","Adane 2015","111.1","6.56","87.3","610","1750","533","15.3",""
+"ICU-01","true","Roberts 2011","86.7","5.11","93.3","489","1250","489","15.3",""
+"ICU-02","true","Roberts 2011","33.1","1.99","98.2","503","1000","503","16.6","ไตทำงานไม่คงที่: ควรใช้ TDM ถี่ขึ้นและตรวจ SCr ซ้ำ"
+"ICU-03","true","Buelga 2005","136.6","10.90","87.3","413","1750","482","14.1",""
+"ICUOB-01","true","Masich 2020","89.5","6.03","89.8","580","1500","497","14.7",""
+"ICUOB-02","true","Masich 2020","62.4","2.57","126.2","584","1250","487","16.1","ไตทำงานไม่คงที่: ควรใช้ TDM ถี่ขึ้นและตรวจ SCr ซ้ำ"
+"LOW-01","true","Buelga 2005","30.3","1.50","49.4","334","750","501","14.5",""
+"LOW-02","true","Buelga 2005","79.3","4.62","51.9","325","1250","541","13.9",""
+"HD-01","true","Buelga 2005","3.5","0.69","40.3","727","750","545","14.8","ผู้ป่วย RRT/HD: ควรใช้ dose-by-level และ protocol เฉพาะของหน่วยงาน"
+"HD-02","true","Buelga 2005","3.5","0.73","45.2","861","750","517","14.4","ผู้ป่วย RRT/HD: ควรใช้ dose-by-level และ protocol เฉพาะของหน่วยงาน"
+"HI-01","true","Buelga 2005","86.9","4.83","81.8","414","1250","518","15.8",""
+"MIC-01","true","Buelga 2005","82.6","4.96","71.6","404","1250","504","14.5",""
+"HIGH-01","true","Buelga 2005","41.2","3.46","75.4","867","750","433","13.9",""
+"LOWAUC-01","true","Buelga 2005","229.2","13.75","95.4","145","3000","436","9.9",""
+"SS-01","true","Buelga 2005","95.9","5.47","47.0","411","1000","548","15.3",""
+"SS-02","true","Buelga 2005","122.2","6.64","80.9","452","1750","527","14.6",""
+"AKI-01","true","Buelga 2005","24.4","1.14","81.6","656","500","437","15.4","ไตทำงานไม่คงที่: ควรใช้ TDM ถี่ขึ้นและตรวจ SCr ซ้ำ"
+"AKI-02","true","Roberts 2011","19.4","1.17","87.8","640","500","426","15.2","ไตทำงานไม่คงที่: ควรใช้ TDM ถี่ขึ้นและตรวจ SCr ซ้ำ"
+"MAX-01","true","Masich 2020","173.8","8.30","114.3","482","2000","482","14.2",""

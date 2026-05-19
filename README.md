@@ -1,30 +1,26 @@
-# Vancomycin TDM Calculator Production Bundle
+# Vancomycin TDM Calculator v3.0
 
-This bundle contains an adult inpatient vancomycin AUC-guided calculation engine with MAP Bayesian estimation, a browser UI, and a 30-case mock validation suite.
-
-## Important clinical scope
-
-This project is **not a certified medical device** and must not be used as an autonomous dosing tool. It is intended for pharmacist-supervised TDM workflows after local institutional validation.
-
-Hard-stop populations in the default engine include pediatric patients, MIC >= 2 mg/L, renal replacement therapy, ECMO, unstable renal function/AKI, and samples drawn during infusion.
+This package preserves the uploaded UX/UI structure while replacing the calculation functions with a clinically aligned PK/AUC engine.
 
 ## Files
+- `index.html` — original hub UI preserved
+- `enhanced-vancomycin-tdm.html` — uploaded Enhanced UI preserved; calculation moved to JS
+- `vancomycin-standard.html` — uploaded Standard UI preserved; calculation moved to JS
+- `js/vancomycin-engine.js` — shared PK/AUC/MAP estimation engine
+- `js/enhanced-app.js` — adapter for Enhanced UI
+- `js/standard-app.js` — adapter for Standard UI
+- `tests/mock-cases.json` — 30 mock validation cases
+- `tests/run-validation.cjs` — numerical smoke test runner
+- `tests/validation-output.csv` — validation outputs
+- `tests/validation-summary.json` — test summary
 
-- `index.html` enhanced/Bayesian UI
-- `standard.html` standard UI shell using the same safety engine
-- `js/vancomycin-engine.js` headless PK/Bayesian calculation engine
-- `js/vancomycin-adapter.js` DOM adapter
-- `tests/mock-cases.json` 30 mock cases
-- `tests/run-validation.mjs` validation runner
-- `tests/validation-output.csv` generated test output
-- `docs/validation-report.md` generated validation summary
+## Clinical safety notice
+For pharmacist-supervised TDM and institutional validation only. Not a certified medical device. Do not use as the sole basis for patient care decisions.
 
 ## Run tests
-
 ```bash
 npm test
 ```
 
-## Deploy
-
-Any static hosting service can serve this folder. For hospital deployment, place behind institutional authentication, enable audit logging in the adapter layer, and complete retrospective local validation before clinical release.
+## Deploy to GitHub Pages
+Upload the repository contents to GitHub, then enable Pages from `main` branch `/root`.

@@ -1,0 +1,414 @@
+
+<!DOCTYPE html>
+<html lang="th">
+
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Enhanced Vancomycin TDM Calculator with Bayesian Methods</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        body {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            font-family: 'Arial', sans-serif;
+        }
+        .glass-card {
+            background: rgba(255, 255, 255, 0.95) !important;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        .result-card {
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%) !important;
+            color: white;
+        }
+        .bayesian-card {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
+            color: white;
+        }
+        .warning-card {
+            background: linear-gradient(135deg, #ff9a9e 0%, #fecfef 100%) !important;
+            color: #333;
+        }
+        .success-card {
+            background: linear-gradient(135deg, #a8edea 0%, #fed6e3 100%) !important;
+            color: #333;
+        }
+        .danger-card {
+            background: linear-gradient(135deg, #ff416c 0%, #ff4b2b 100%) !important;
+            color: white;
+        }
+        .pulse-animation {
+            animation: pulse 2s infinite;
+        }
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.7; }
+        }
+        .model-badge {
+            padding: 0.25rem 0.5rem;
+            border-radius: 0.375rem;
+            font-size: 0.75rem;
+            font-weight: 600;
+            display: inline-block;
+        }
+        .buelga { background-color: #3b82f6; color: white; }
+        .adane { background-color: #ef4444; color: white; }
+        .roberts { background-color: #8b5cf6; color: white; }
+        .masich { background-color: #06b6d4; color: white; }
+        .input-group {
+            position: relative;
+        }
+        .input-group input:focus + .input-label,
+        .input-group input:not(:placeholder-shown) + .input-label {
+            transform: translateY(-1.5rem) scale(0.8);
+            color: #667eea;
+        }
+        .input-label {
+            position: absolute;
+            left: 0.75rem;
+            top: 0.5rem;
+            transition: all 0.2s ease;
+            pointer-events: none;
+            color: #6b7280;
+        }
+        .complexity-indicator {
+            width: 100%;
+            height: 8px;
+            background: #e5e7eb !important;
+            border-radius: 4px;
+            overflow: hidden;
+        }
+        .complexity-fill {
+            height: 100%;
+            transition: width 0.3s ease;
+        }
+        .complexity-low { background: linear-gradient(90deg, #10b981, #34d399) !important; }
+        .complexity-medium { background: linear-gradient(90deg, #f59e0b, #fbbf24) !important; }
+        .complexity-high { background: linear-gradient(90deg, #ef4444, #f87171) !important; }
+        .complexity-critical { background: linear-gradient(90deg, #7c3aed, #a855f7) !important; }
+        .floating-panel {
+            position: fixed;
+            right: 1rem;
+            top: 50%;
+            transform: translateY(-50%);
+            z-index: 1000;
+            width: 280px;
+        }
+        @media (max-width: 1024px) {
+            .floating-panel {
+                position: relative;
+                right: auto;
+                top: auto;
+                transform: none;
+                width: 100%;
+            }
+        }
+    </style>
+  </head>
+
+  <body>
+    <div class="min-h-screen py-6 px-4">
+      <div class="max-w-6xl mx-auto mb-6">
+        <div class="flex justify-between items-center">
+          <button onclick="window.location.href='index.html'" class="bg-white bg-opacity-20 hover:bg-opacity-30 text-white font-medium py-2 px-4 rounded-lg transition duration-200 flex items-center backdrop-blur-sm border border-white border-opacity-30">
+            <i class="fas fa-arrow-left mr-2"></i> Back to Hub
+          </button>
+          <button onclick="resetForm()" class="bg-red-500 bg-opacity-80 hover:bg-opacity-100 text-white font-medium py-2 px-4 rounded-lg transition duration-200 flex items-center backdrop-blur-sm">
+            <i class="fas fa-undo mr-2"></i> Reset
+          </button>
+        </div>
+      </div>
+
+      <header class="text-center mb-8">
+        <div class="glass-card rounded-2xl p-6 max-w-4xl mx-auto">
+          <h1 class="text-4xl font-bold text-gray-800 mb-3">
+            <i class="fas fa-brain text-purple-600 mr-3"></i> Enhanced Vancomycin TDM Calculator
+          </h1>
+          <p class="text-lg text-gray-600 mb-2">เครื่องมือคำนวณขั้นสูงพร้อม Bayesian Optimization</p>
+          <div class="flex flex-wrap justify-center gap-2 text-sm text-gray-500">
+            <span class="bg-purple-100 text-purple-800 px-3 py-1 rounded-full">
+              <i class="fas fa-chart-line mr-1"></i> 10-20% Enhanced Accuracy
+            </span>
+            <span class="bg-blue-100 text-blue-800 px-2 py-1 rounded-full">
+              <i class="fas fa-users mr-1"></i> Multi-Compartment Models
+            </span>
+            <span class="bg-green-100 text-green-800 px-3 py-1 rounded-full">
+              <i class="fas fa-shield-alt mr-1"></i> Clinical Decision Support
+            </span>
+          </div>
+        </div>
+      </header>
+
+      <div id="safetyAlerts" class="max-w-6xl mx-auto mb-6"></div>
+
+      <div class="floating-panel">
+        <div id="complexityPanel" class="glass-card rounded-xl p-4 shadow-lg" style="display: none;">
+          <h3 class="font-semibold text-gray-800 mb-3 flex items-center">
+            <i class="fas fa-chart-pie text-purple-600 mr-2"></i> Patient Complexity
+          </h3>
+          <div class="complexity-indicator mb-2">
+            <div id="complexityFill" class="complexity-fill complexity-low" style="width: 0%"></div>
+          </div>
+          <div id="complexityText" class="text-sm text-gray-600 mb-3">กำลังประเมิน...</div>
+          <div id="recommendedMethod" class="text-xs bg-gray-100 p-2 rounded">
+            <strong>แนะนำ:</strong> <span id="methodRecommendation">-</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="max-w-6xl mx-auto grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <!-- Left Column -->
+        <div class="lg:col-span-1 space-y-6">
+          <!-- Patient Information Card -->
+          <div class="glass-card rounded-xl p-6 shadow-lg">
+            <h3 class="text-xl font-semibold text-gray-800 mb-4 flex items-center">
+              <i class="fas fa-user-md text-blue-600 mr-2"></i> ข้อมูลผู้ป่วย
+              <div id="selectedModel" class="ml-auto model-badge buelga">Buelga 2005</div>
+            </h3>
+            <div class="space-y-4">
+              <div class="grid grid-cols-2 gap-4">
+                <div class="input-group">
+                  <input type="number" id="weight" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent" placeholder=" " min="30" max="300">
+                  <label class="input-label">น้ำหนัก (kg)</label>
+                </div>
+                <div class="input-group">
+                  <input type="number" id="height" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent" placeholder=" " min="120" max="220">
+                  <label class="input-label">ส่วนสูง (cm)</label>
+                </div>
+              </div>
+              <div class="grid grid-cols-2 gap-4">
+                <div class="input-group">
+                  <input type="number" id="age" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent" placeholder=" " min="18" max="100">
+                  <label class="input-label">อายุ (ปี)</label>
+                </div>
+                <div>
+                  <select id="gender" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent">
+                    <option value="male">ชาย</option>
+                    <option value="female">หญิง</option>
+                  </select>
+                </div>
+              </div>
+              <div class="grid grid-cols-2 gap-4">
+                <div class="input-group">
+                  <input type="number" id="scr" step="0.1" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent" placeholder=" " min="0.3" max="15">
+                  <label class="input-label">SCr (mg/dL)</label>
+                </div>
+                <div class="input-group">
+                  <input type="number" id="targetAUC" value="400" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent" min="400" max="800">
+                  <label class="input-label">Target AUC (per 24h)</label>
+                </div>
+              </div>
+              <div class="grid grid-cols-2 gap-4">
+                <div class="input-group">
+                  <input type="number" id="mic" step="0.1" value="1" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent" placeholder=" " min="0.5" max="2">
+                  <label class="input-label">MIC (mg/L)</label>
+                </div>
+              </div>
+              <div class="space-y-2">
+                <label class="flex items-center cursor-pointer">
+                  <input type="checkbox" id="criticallyIll" class="mr-2 rounded">
+                  <span class="text-sm">ผู้ป่วยอาการหนัก (ICU)</span>
+                  <i class="fas fa-info-circle text-purple-500 ml-2" title="ผู้ป่วยใน ICU หรือมีอาการรุนแรง"></i>
+                </label>
+                <label class="flex items-center cursor-pointer">
+                  <input type="checkbox" id="renalImpairment" class="mr-2 rounded">
+                  <span class="text-sm">ไตทำงานผิดปกติไม่คงที่</span>
+                  <i class="fas fa-exclamation-triangle text-orange-600 ml-2" title="แนะนำใช้ Bayesian methods"></i>
+                </label>
+                <label class="flex items-center cursor-pointer">
+                  <input type="checkbox" id="dialysis" class="mr-2 rounded">
+                  <span class="text-sm">รับการฟอกไต (RRT)</span>
+                </label>
+                <label class="flex items-center cursor-pointer">
+                  <input type="checkbox" id="hepaticImpairment" class="mr-2 rounded">
+                  <span class="text-sm">ตับทำงานผิดปกติ</span>
+                  <i class="fas fa-exclamation-triangle text-orange-600 ml-2" title="อาจส่งผลต่อการกำจัดยา"></i>
+                </label>
+              </div>
+            </div>
+          </div>
+
+          <!-- Bayesian Optimization Card -->
+          <div class="glass-card rounded-xl p-6 shadow-lg">
+            <h3 class="text-xl font-semibold text-gray-800 mb-4 flex items-center">
+              <i class="fas fa-brain text-purple-600 mr-2"></i> Bayesian Optimization
+            </h3>
+            <div class="space-y-4">
+              <div>
+                <label class="block text-sm font-medium text-gray-700 mb-2">Modeling Method</label>
+                <select id="modelingMethod" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent">
+                  <option value="auto">Auto-Select (Recommended)</option>
+                  <option value="population">Population Only</option>
+                  <option value="bayesian">Bayesian Optimization</option>
+                </select>
+              </div>
+              <div>
+                <label class="block text-sm font-medium text-gray-700 mb-2">Prior Confidence</label>
+                <select id="priorConfidence" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent">
+                  <option value="low">Low (More TDM Weight)</option>
+                  <option value="medium" selected>Medium (Balanced)</option>
+                  <option value="high">High (Trust Population)</option>
+                </select>
+              </div>
+              <div class="bg-purple-50 p-3 rounded-lg">
+                <h4 class="font-medium text-purple-800 mb-2">
+                  <i class="fas fa-lightbulb mr-1"></i> Bayesian Recommended for:
+                </h4>
+                <ul class="text-sm text-purple-700 space-y-1">
+                  <li>• Morbid Obesity (BMI > 40)</li>
+                  <li>• Critical Care (ICU)</li>
+                  <li>• Elderly with Renal Impairment</li>
+                  <li>• Abnormal TDM Levels</li>
+                  <li>• Hepatic Dysfunction</li>
+                </ul>
+              </div>
+            </div>
+          </div>
+
+          <!-- TDM Data Card -->
+          <div class="glass-card rounded-xl p-6 shadow-lg">
+            <h3 class="text-xl font-semibold text-gray-800 mb-4 flex items-center">
+              <i class="fas fa-chart-line text-green-600 mr-2"></i> TDM Data
+            </h3>
+            <div class="space-y-4">
+              <div class="grid grid-cols-2 gap-4">
+                <div class="input-group">
+                  <input type="number" id="currentDose" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent" placeholder=" " min="250" max="4000" step="25">
+                  <label class="input-label">Current Dose (mg)</label>
+                </div>
+                <div>
+                  <select id="interval" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent">
+                    <option value="8">Every 8 Hours</option>
+                    <option value="12" selected>Every 12 Hours</option>
+                    <option value="24">Every 24 Hours</option>
+                    <option value="48">Every 48 Hours</option>
+                  </select>
+                </div>
+              </div>
+              <div class="grid grid-cols-2 gap-4">
+                <div class="input-group">
+                  <input type="number" id="peakLevel" step="0.1" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent" placeholder=" " min="5" max="80">
+                  <label class="input-label">Peak (mg/L)</label>
+                </div>
+                <div class="input-group">
+                  <input type="number" id="troughLevel" step="0.1" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent" placeholder=" " min="2" max="40">
+                  <label class="input-label">Trough (mg/L)</label>
+                </div>
+              </div>
+              <div class="grid grid-cols-2 gap-4">
+                <div class="input-group">
+                  <input type="number" id="peakTime" step="0.1" value="1" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent" min="0.5" max="4">
+                  <label class="input-label">Peak Time (hr)</label>
+                </div>
+                <div class="input-group">
+                  <input type="number" id="troughTime" step="0.1" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent" placeholder=" " min="4" max="48">
+                  <label class="input-label">Trough Time (hr)</label>
+                </div>
+              </div>
+              <div class="grid grid-cols-2 gap-4">
+                <div class="input-group">
+                  <input type="number" id="dosesGiven" step="1" value="0" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent" min="0" max="10">
+                  <label class="input-label">Doses Given</label>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Right Column -->
+        <div class="lg:col-span-2 space-y-6">
+          <!-- Action Buttons -->
+          <div class="glass-card rounded-xl p-6">
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
+              <button onclick="calculateInitialDose()" class="bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white font-medium py-3 px-4 rounded-lg transition duration-200 flex items-center justify-center">
+                <i class="fas fa-play mr-2"></i> <span class="text-sm">Initial Dose</span>
+              </button>
+              <button onclick="calculateAUC()" class="bg-gradient-to-r from-purple-500 to-purple-600 hover:from-purple-600 hover:to-purple-700 text-white font-medium py-3 px-4 rounded-lg transition duration-200 flex items-center justify-center">
+                <i class="fas fa-chart-area mr-2"></i> <span class="text-sm">Calculate AUC</span>
+              </button>
+              <button onclick="adjustDose()" class="bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white font-medium py-3 px-4 rounded-lg transition duration-200 flex items-center justify-center">
+                <i class="fas fa-adjust mr-2"></i> <span class="text-sm">Adjust Dose</span>
+              </button>
+              <button onclick="calculateLoadingDose()" class="bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white font-medium py-3 px-4 rounded-lg transition duration-200 flex items-center justify-center">
+                <i class="fas fa-bolt mr-2"></i> <span class="text-sm">Loading Dose</span>
+              </button>
+            </div>
+          </div>
+
+          <!-- Patient Summary Card -->
+          <div id="patientSummaryCard" class="glass-card rounded-xl p-6 shadow" style="display: none;">
+            <h3 class="text-xl font-semibold text-gray-800 mb-4 flex items-center">
+              <i class="fas fa-user-check text-blue-600 mr-2"></i> Patient Summary
+            </h3>
+            <div id="patientSummary" class="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm"></div>
+          </div>
+
+          <!-- Bayesian Status Card -->
+          <div id="bayesianStatusCard" class="bayesian-card rounded-xl p-6 shadow" style="display: none;">
+            <h3 class="text-xl font-semibold mb-4 flex items-center">
+              <i class="fas fa-brain mr-2"></i> Bayesian Optimization Status
+              <div id="optimizationBadge" class="ml-auto text-xs bg-white bg-opacity-20 px-3 py-1 rounded-full">
+                Initializing...
+              </div>
+            </h3>
+            <div id="bayesianDetails" class="space-y-3">
+              <div class="grid grid-cols-3 gap-4 text-sm">
+                <div><strong>Method:</strong> <span id="bayesianMethod">Population</span></div>
+                <div><strong>Iterations:</strong> <span id="bayesianIterations">0</span></div>
+                <div><strong>Convergence:</strong> <span id="bayesianConvergence">N/A</span></div>
+              </div>
+              <div id="parameterComparison" class="bg-white bg-opacity-10 rounded-lg p-4">
+                <h4 class="font-medium mb-2">Parameter Adjustments</h4>
+                <div id="parameterChanges" class="space-y-2 text-sm"></div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Results Section -->
+          <div id="resultsSection" class="space-y-4"></div>
+
+          <!-- Concentration-Time Profile Charts -->
+          <div class="glass-card rounded-xl p-6 shadow">
+            <h3 class="text-xl font-semibold text-gray-800 mb-4 flex items-center">
+              <i class="fas fa-chart-line text-indigo-600 mr-2"></i> Concentration-Time Profile
+              <div id="chartMethodBadge" class="ml-auto text-xs bg-indigo-100 text-indigo-800 px-3 py-1 rounded-full" style="display: none;">
+                Population Model
+              </div>
+            </h3>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div style="height: 400px;">
+                <canvas id="oneCompartmentChart"></canvas>
+              </div>
+              <div style="height: 400px;">
+                <canvas id="twoCompartmentChart"></canvas>
+              </div>
+            </div>
+          </div>
+
+          <!-- Comparison Chart Card -->
+          <div id="comparisonChartCard" class="glass-card rounded-xl p-6 shadow" style="display: none;">
+            <h3 class="text-xl font-semibold text-gray-800 mb-4 flex items-center">
+              <i class="fas fa-balance-scale text-orange-600 mr-2"></i> Population vs Bayesian Comparison
+            </h3>
+            <div style="height: 300px;">
+              <canvas id="comparisonChart"></canvas>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Footer Note -->
+      <div class="max-w-6xl mx-auto mt-8">
+        <div class="glass-card rounded-xl p-4 text-center text-sm text-gray-600">
+          <p><i class="fas fa-info-circle mr-1"></i> เครื่องมือนี้ใช้เพื่อช่วยในการตัดสินใจทางคลินิกเท่านั้น ไม่ใช่การทดแทนดุลยพินิจทางการแพทย์</p>
+        </div>
+      </div>
+    </div>
+
+    <script src="js/vancomycin-engine.js"></script>
+    <script src="js/enhanced-app.js"></script>
+  </body>
+</html>
