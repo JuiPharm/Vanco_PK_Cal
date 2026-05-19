@@ -1,0 +1,31 @@
+id,disposition,model,confidence,cl,dose,auc,trough,warnings,pass
+C01,supported,buelga,prior-only,5.897,"1500 q12h",508.8,14,"—",true
+C02,supported,buelga,one-level-map,2.886,"1500 q24h",519.7,12.3,"—",true
+C03,supported,buelga,two-level-map,4.917,"1250 q12h",508.5,13.6,"—",true
+C04,supported,adane,prior-only,7.519,"1250 q8h",498.7,15.1,"—",true
+C05,supported,adane,one-level-map,4.324,"750 q8h",520.3,17.3,"—",true
+C06,supported,roberts,prior-only,3.285,"2500 q36h",507.4,13.4,"—",true
+C07,supported,roberts,one-level-map,1.854,"1500 q36h",539.3,16,"—",true
+C08,supported,roberts,two-level-map,4.705,"1750 q18h",496,13.7,"—",true
+C09,supported,masich,prior-only,6.03,"1500 q12h",497.5,14.8,"—",true
+C10,supported,masich,one-level-map,5.078,"1250 q12h",492.3,14.7,"—",true
+C11,supported,masich,two-level-map,5.055,"2500 q24h",494.6,11.1,"—",true
+C12,supported,buelga,prior-only,1.102,"750 q36h",453.9,12.9,"—",true
+C13,supported,buelga,one-level-map,1.528,"750 q24h",490.9,15.2,"—",true
+C14,supported,buelga,prior-only,12.312,"2000 q8h",487.3,14.1,"HIGH_DAILY_DOSE",true
+C15,supported,roberts,one-level-map,9.12,"3000 q18h",438.6,9.3,"—",true
+C16,hard-stop,—,—,—,"—",—,—,"UNSTABLE_RENAL_FUNCTION",true
+C17,hard-stop,—,—,—,"—",—,—,"RENAL_REPLACEMENT_THERAPY",true
+C18,hard-stop,—,—,—,"—",—,—,"RENAL_REPLACEMENT_THERAPY",true
+C19,hard-stop,—,—,—,"—",—,—,"ECMO_UNSUPPORTED_BY_DEFAULT_MODELS",true
+C20,hard-stop,—,—,—,"—",—,—,"ADULT_ONLY",true
+C21,supported,buelga,prior-only,4.082,"1000 q12h",489.9,11.9,"—",true
+C22,supported,adane,prior-only,8.867,"1000 q6h",451.1,15.8,"—",true
+C23,supported,buelga,prior-only,3.046,"750 q12h",492.5,14.3,"—",true
+C24,hard-stop,—,—,—,"—",—,—,"MIC_TOO_HIGH",true
+C25,hard-stop,—,—,—,"—",—,—,"SAMPLE_DURING_INFUSION",true
+C26,supported,buelga,two-level-map,3.747,"2750 q36h",489.3,9,"—",true
+C27,supported,buelga,one-level-map,2.957,"1500 q24h",507.2,13.8,"—",true
+C28,supported,buelga,one-level-map,1.841,"1000 q24h",543.1,15.3,"—",true
+C29,supported,buelga,two-level-map,10.381,"3000 q18h",385.3,8,"AUC_BELOW_TARGET",true
+C30,supported,roberts,one-level-map,3.041,"2250 q36h",493.3,14.7,"NEPHROTOXIN_RISK",true
